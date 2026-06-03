@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this benchmark dataset, please cite it using the metadata below."
+title: "Nemotron 3 Nano on vLLM: 2-GPU Production-Readiness Benchmark"
+version: "2026-06-02-benchmark-v1"
+date-released: "2026-06-02"
+repository-code: "https://github.com/Quentin-aq/public-nemotron-prod-readiness-benchmark"
+license: "CC-BY-4.0"
+authors:
+  - name: "Quentin-aq"
+keywords:
+  - "Nemotron"
+  - "vLLM"
+  - "LLM serving"
+  - "production-readiness"
+  - "benchmark"
+  - "TTFT"
+  - "goodput"
+abstract: >-
+  Sanitized production-readiness benchmark evidence for
+  nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 served by vLLM on a 2-GPU
+  deployment under a short-context, decode-heavy streaming workload with
+  max_tokens=512.

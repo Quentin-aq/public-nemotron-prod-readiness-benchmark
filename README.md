@@ -1,129 +1,140 @@
-# Nemotron 3 Nano Production-Readiness Benchmark
+# Nemotron 3 Nano on vLLM: 2-GPU Production-Readiness Benchmark
 
-Public README derived from the internal report
-`2026-06-02-nemotron-prod-readiness-benchmark.md`.
+This repository publishes a sanitized production-readiness benchmark for
+`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` served by vLLM on a 2-GPU
+deployment.
 
-This repository contains a sanitized export of the June 2, 2026
-production-readiness benchmark for
-`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` served by vLLM.
+The goal is not to rank model quality. The goal is to answer a serving
+question:
+
+> Under a short-context, long-output streaming workload, where is this
+> deployment interactive, where is it internally usable, and where does
+> it become batch-only?
 
 Internal service endpoints, Kubernetes namespaces, private hostnames,
 local filesystem paths, credentials, and generated response bodies were
-removed from this public package. The remaining files are benchmark
-metrics, public manifests, aggregate tables, and charts.
+removed from this public package.
 
-## Benchmark Claim
+## TL;DR
 
-This benchmark provides production-readiness evidence for Nemotron 3 Nano
-on this specific 2-GPU vLLM deployment under short-context, decode-heavy
-streaming workloads with `max_tokens=512`.
+Controlled GO for the benchmarked workload.
 
-It does not prove that Nemotron 3 Nano is the best model. It shows that,
-on this 2-GPU vLLM stack and for a short-input / long-output workload,
-the model can be operated stably, with a clear operational boundary
-between interactive usage, tolerant internal usage, and batch capacity.
+- Interactive chat is supported up to around `2 rps` offered load, with
+  `~1.94 completed requests/s`, p95 TTFT around `541 ms`, and `0%`
+  errors.
+- High-throughput internal usage remains practical around `5 rps`
+  offered load, with p95 TTFT still below `1s`.
+- The main queueing boundary appears between `5` and `6 rps`, when max
+  inflight requests move beyond the configured `max_num_seqs=64` region.
+- The deployment remains stable at `10 rps` offered load with `0%`
+  errors, but p95 TTFT reaches `16.5s`, making this batch capacity rather
+  than interactive capacity.
+- The bottleneck at high offered load is queueing before first token, not
+  per-token decode speed.
 
-Under this benchmark scope, the results support:
+## Decision
 
-- interactive chat up to around `2 rps` offered load, with approximately
-  `1.94 completed requests/s`;
-- internal assistant / tolerant UX usage up to around `6 rps` offered load, with
-  approximately `4.59 completed requests/s`;
-- batch-style offered load up to `10 rps`, with approximately
-  `4.94 completed requests/s`, `0%` observed errors, and `0` timeouts.
+**Controlled GO** for this specific 2-GPU vLLM deployment under the
+benchmarked short-context, decode-heavy workload.
 
-It does not claim:
+Do use this result for:
 
-- universal model quality superiority;
-- long-context interactive performance;
+- sizing interactive traffic near the `2 rps` offered-load region;
+- routing tolerant internal assistant traffic near the `5-6 rps`
+  offered-load region;
+- treating `8-10 rps` offered load as batch / agent-job capacity.
+
+Do not use this result to claim:
+
+- `10 rps` interactive serving;
+- long-context interactive readiness;
+- model-quality superiority;
 - multi-tenant autoscaling behavior;
 - cost parity with hosted APIs;
-- generalization to different GPUs, vLLM versions, model revisions, or
+- generalization to other GPUs, vLLM versions, model revisions, or
   serving parameters.
 
-## Executive Summary
+## Operating Envelope
 
-Current decision: controlled GO for Nemotron 3 Nano served by vLLM on the
-observed internal model-serving path.
+| Workload class                     |                                 Recommended operating point | Evidence                                                                                  | Production reading            |
+| ---------------------------------- | ----------------------------------------------------------: | ----------------------------------------------------------------------------------------- | ----------------------------- |
+| Interactive chat                   |     `<= 2 rps` offered load, `~1.94 completed rps` observed | p95 TTFT `541 ms`, p95 e2e `6.2s`, `100%` TTFT < `1s`                                     | GO                            |
+| High-throughput internal assistant | around `5 rps` offered load, `~4.31 completed rps` observed | p95 TTFT `625 ms`, p95 e2e `12.1s`, `~2209 output tokens/s`                               | GO with monitoring            |
+| Queueing boundary                  |                        between `5` and `6 rps` offered load | max inflight crosses the `max_num_seqs=64` region; p95 TTFT jumps from `625 ms` to `4.7s` | admission control recommended |
+| Batch / agent jobs                 |                                     `8-10 rps` offered load | `0%` errors, but p95 TTFT `11.6-16.5s`                                                    | batch only                    |
 
-The open-loop request-rate sweep generated offered load from `0.25` to
-`10 rps`. It completed `2310/2310` measured requests with `0` errors and
-`0` timeouts. At the highest offered load, the deployment completed
-approximately `4.94 requests/s`; p95 TTFT reached `16.5s`, making that
-level suitable for batch-style workloads rather than interactive usage.
+## Main Finding: Capacity Frontier
 
-The limiting factor is user-facing latency, especially
-time-to-first-token (TTFT), once observed inflight requests exceed the
-configured vLLM sequence capacity.
+![Open-loop capacity frontier](assets/open-loop-capacity-frontier.svg)
 
-The main inflection point is between `5` and `6 rps`:
+The deployment keeps sub-second p95 TTFT up to the `5 rps` offered-load
+region. Above that point, output throughput increases only marginally
+while TTFT rises sharply. This makes `5-6 rps` the practical boundary
+between interactive/internal usage and batch-style serving for this
+workload.
 
-| Target RPS | Max inflight | p95 TTFT | p95 e2e | Interpretation |
-| ---: | ---: | ---: | ---: | --- |
-| `5 rps` | 61 | 625 ms | 12073 ms | healthy internal/premium boundary |
-| `6 rps` | 89 | 4679 ms | 15495 ms | visible queueing, still stable |
-| `8 rps` | 130 | 11563 ms | 20942 ms | batch-oriented |
-| `10 rps` | 167 | 16497 ms | 25948 ms | stable, non-interactive UX |
+## Key Evidence
 
-The server-side exact output throughput reaches approximately
-`2528 output tokens/s`, or about `1264 output tokens/s/GPU`, at
-`10 rps` offered load in this open-loop workload. Earlier closed-loop
-runs observed a higher throughput plateau around `5.2k output tokens/s`,
-but those runs answer a different concurrency question than the
-request-rate sweep published here.
+Source: [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv)
 
-## Reader Takeaway
+| Offered RPS | Completed RPS | Max inflight | p95 TTFT |  p95 e2e | Server exact output TPS | Error rate | Reading                  |
+| ----------: | ------------: | -----------: | -------: | -------: | ----------------------: | ---------: | ------------------------ |
+|           2 |         1.936 |           13 |   541 ms |  6176 ms |                   991.5 |         0% | interactive              |
+|           5 |         4.315 |           61 |   625 ms | 12073 ms |                  2209.2 |         0% | high-throughput internal |
+|           6 |         4.588 |           89 |  4679 ms | 15495 ms |                  2349.0 |         0% | queueing begins          |
+|           8 |         4.860 |          130 | 11563 ms | 20942 ms |                  2488.2 |         0% | batch leaning            |
+|          10 |         4.938 |          167 | 16497 ms | 25948 ms |                  2528.0 |         0% | batch only               |
 
-For this workload, the deployment behaves as follows:
+Important: this is not `10 rps` interactive serving. The benchmark
+generated up to `10 rps` of offered load. Under this load, the deployment
+completed approximately `4.94 requests/s` with `0%` errors and `0`
+timeouts, but p95 TTFT reached `16.5s`.
 
-- below `2 rps` offered load: interactive latency is strong;
-- around `5 rps` offered load: throughput is high and p95 TTFT remains
-  below `1s`;
-- between `5` and `6 rps` offered load: queueing becomes visible;
-- above `8 rps` offered load: the system remains stable but should be
-  treated as batch capacity, not chat capacity.
+## Goodput / SLO Pass Rate
 
-## SLA Reading
+Source: [`data/goodput-slo-summary.csv`](data/goodput-slo-summary.csv)
 
-| Usage | Recommended ceiling | Observed capacity | Reason |
-| --- | ---: | ---: | --- |
-| Interactive chat | `<= 2 rps` offered load, `~1.94 completed requests/s` observed | `~992 output tokens/s exact` | p95 TTFT around 541 ms, p95 e2e around 6.2 s |
-| Internal assistant / tolerant UX | `<= 6 rps` offered load, `~4.59 completed requests/s` observed | `~2349 output tokens/s exact` | p95 TTFT 4.7 s, p95 e2e 15.5 s, 0 errors |
-| Batch / agent jobs | `<= 10 rps` offered load, `~4.94 completed requests/s` observed | `~2528 output tokens/s exact` | 0 errors, but non-interactive TTFT at 8-10 rps |
+The table below is computed from per-request measured records after
+removing warmup requests. The thresholds are illustrative production
+SLOs, not universal latency requirements.
 
-Do not describe this result as "`10 rps interactive`". A more accurate
-public wording is:
+| Offered RPS | Completed RPS | Error-free | TTFT < 1s | TTFT < 5s | TPOT < 25ms | e2e < 15s | Reading                              |
+| ----------: | ------------: | ---------: | --------: | --------: | ----------: | --------: | ------------------------------------ |
+|           2 |         1.936 |       100% |      100% |      100% |        100% |      100% | interactive                          |
+|           5 |         4.315 |       100% |      100% |      100% |        100% |      100% | high-throughput interactive/internal |
+|           6 |         4.588 |       100% |    40.42% |      100% |      98.33% |    81.25% | queueing begins                      |
+|           8 |         4.860 |       100% |    26.67% |    53.33% |        100% |     32.5% | batch leaning                        |
+|          10 |         4.938 |       100% |    26.67% |    31.67% |        100% |    26.67% | batch only                           |
 
-> The benchmark generated up to `10 rps` of offered load. Under this
-> load, the deployment completed approximately `4.94 requests/s` with
-> `0%` errors and `0` timeouts, but p95 TTFT reached `16.5s`, making
-> this level suitable for batch-style workloads rather than interactive
-> usage.
+The most important diagnostic is that TTFT and e2e SLOs collapse before
+TPOT does. The bottleneck is not per-token decode speed. The bottleneck
+is queueing before first token once inflight requests exceed the serving
+capacity region.
 
 ## Methodology
 
-| Field | Value |
-| --- | --- |
-| Run date | 2026-06-02 |
-| Benchmark mode | open-loop request-rate sweep |
-| Endpoint type | OpenAI-compatible streaming endpoint |
-| Workload | short prompt, long generation, decode-heavy |
-| Model | `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` |
-| Model snapshot | `cbd3fa9f933d55ef16a84236559f4ee2a0526848` |
-| Max output tokens | `512` |
-| Average generated output length | approximately `512` output tokens per completed request across the high-rate levels |
-| Request-rate levels | `0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6, 8, 10 rps` |
-| Measured requests | `2310` |
-| Warmup | `3` warmup requests per benchmark run, excluded from measured totals |
-| Duration per level | `120000 ms` |
-| Cooldown between levels | `60000 ms` |
-| Sampling | `temperature=0`, `top_p=1` |
-| Reasoning mode | `enable_thinking=false` |
-| Streaming | `true` |
-| Timeout | `120000 ms` |
-| Client environment | containerized benchmark runner on the same private serving path; private infrastructure details removed |
-| Server runtime | vLLM `0.21.0`, PyTorch `2.11.0+cu130`, NVIDIA driver `595.58.03`, CUDA runtime `13.2` |
-| Server hardware | 2 x NVIDIA RTX PRO 6000 Blackwell Server Edition, tensor parallel size `2` |
+| Field                           | Value                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Run date                        | 2026-06-02                                                                                              |
+| Benchmark mode                  | open-loop request-rate sweep                                                                            |
+| Endpoint type                   | OpenAI-compatible streaming endpoint                                                                    |
+| Workload                        | short prompt, long generation, decode-heavy                                                             |
+| Model                           | `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16`                                                            |
+| Model snapshot                  | `cbd3fa9f933d55ef16a84236559f4ee2a0526848`                                                              |
+| Max output tokens               | `512`                                                                                                   |
+| Average generated output length | approximately `512` output tokens per completed request across the high-rate levels                     |
+| Request-rate levels             | `0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6, 8, 10 rps`                                               |
+| Measured requests               | `2310`                                                                                                  |
+| Warmup                          | `3` warmup requests per benchmark run, excluded from measured totals                                    |
+| Duration per level              | `120000 ms`                                                                                             |
+| Cooldown between levels         | `60000 ms`                                                                                              |
+| Sampling                        | `temperature=0`, `top_p=1`                                                                              |
+| Reasoning mode                  | `enable_thinking=false`                                                                                 |
+| Streaming                       | `true`                                                                                                  |
+| Timeout                         | `120000 ms`                                                                                             |
+| Client environment              | containerized benchmark runner on the same private serving path; private infrastructure details removed |
+| Server runtime                  | vLLM `0.21.0`, PyTorch `2.11.0+cu130`, NVIDIA driver `595.58.03`, CUDA runtime `13.2`                   |
+| Server hardware                 | 2 x NVIDIA RTX PRO 6000 Blackwell Server Edition, tensor parallel size `2`                              |
 
 The public artifacts do not include a fixed random seed, `ignore_eos`,
 client CPU/RAM allocation, or continuous GPU telemetry. Those are listed
@@ -131,57 +142,16 @@ as limitations and should be captured in the next benchmark run.
 
 ## Metric Definitions
 
-| Metric | Definition |
-| --- | --- |
-| Offered RPS / target RPS | Rate at which the open-loop client initiates new requests. It is not the same as completed throughput under saturation. |
-| Completed RPS / actual RPS | Completed measured requests divided by elapsed benchmark time for the level. |
-| TTFT | Time from request start until the first streamed token is received by the client. |
-| e2e latency | Time from request start until the final token / completion is received by the client. |
-| ITL / TPOT | Inter-token latency, measured as average delay between successive output tokens during streaming. |
-| Client output TPS | Client-side output token estimate divided by benchmark duration. |
-| Server exact output TPS | Output token throughput from vLLM server-side token counters captured through metrics snapshots. |
-| Error rate | HTTP/client errors plus timeouts divided by measured requests. |
-
-## Main Request-Rate Results
-
-Source: [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv)
-
-| Target RPS | Actual RPS | Max inflight | p95 TTFT | p95 e2e | Client output TPS | Server exact output TPS | Error rate |
-| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 0.25 | 0.25 | 1 | 579 ms | 3123 ms | 120.75 | 128.0 | 0% |
-| 0.5 | 0.498 | 2 | 531 ms | 2840 ms | 243.42 | 255.0 | 0% |
-| 0.75 | 0.741 | 3 | 544 ms | 3129 ms | 358.71 | 379.6 | 0% |
-| 1 | 0.981 | 4 | 526 ms | 3886 ms | 481.09 | 502.5 | 0% |
-| 1.25 | 1.222 | 6 | 538 ms | 4608 ms | 594.28 | 625.9 | 0% |
-| 1.5 | 1.462 | 8 | 536 ms | 4983 ms | 713.91 | 748.6 | 0% |
-| 2 | 1.936 | 13 | 541 ms | 6176 ms | 948.67 | 991.5 | 0% |
-| 3 | 2.808 | 26 | 568 ms | 8447 ms | 1422.03 | 1437.9 | 0% |
-| 4 | 3.602 | 42 | 593 ms | 10331 ms | 1839.85 | 1844.4 | 0% |
-| 5 | 4.315 | 61 | 625 ms | 12073 ms | 2201.65 | 2209.2 | 0% |
-| 6 | 4.588 | 89 | 4679 ms | 15495 ms | 2351.91 | 2349.0 | 0% |
-| 8 | 4.860 | 130 | 11563 ms | 20942 ms | 2483.58 | 2488.2 | 0% |
-| 10 | 4.938 | 167 | 16497 ms | 25948 ms | 2523.08 | 2528.0 | 0% |
-
-## Goodput / SLO Pass Rate
-
-Source: [`data/goodput-slo-summary.csv`](data/goodput-slo-summary.csv)
-
-The table below is computed from per-request measured records after
-removing warmup requests. It reports the share of requests that meet
-simple production SLO thresholds. The thresholds are illustrative
-production SLOs, not universal latency requirements.
-
-| Offered RPS | Completed RPS | Measured requests | Error-free | TTFT < 1s | TTFT < 5s | e2e < 15s | e2e < 30s |
-| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 2 | 1.936 | 240 | 100% | 100% | 100% | 100% | 100% |
-| 5 | 4.315 | 240 | 100% | 100% | 100% | 100% | 100% |
-| 6 | 4.588 | 240 | 100% | 40.42% | 100% | 81.25% | 100% |
-| 10 | 4.938 | 240 | 100% | 26.67% | 31.67% | 26.67% | 100% |
-
-The SLO interpretation is clear: the deployment remains error-free at
-high offered load, but the interactive SLO collapses once queueing
-dominates. At `10 rps` offered load, the result is stable batch
-throughput, not interactive latency.
+| Metric                     | Definition                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Offered RPS / target RPS   | Rate at which the open-loop client initiates new requests. It is not the same as completed throughput under saturation. |
+| Completed RPS / actual RPS | Completed measured requests divided by elapsed benchmark time for the level.                                            |
+| TTFT                       | Time from request start until the first streamed token is received by the client.                                       |
+| e2e latency                | Time from request start until the final token / completion is received by the client.                                   |
+| ITL / TPOT                 | Inter-token latency, measured as average delay between successive output tokens during streaming.                       |
+| Client output TPS          | Client-side output token estimate divided by benchmark duration.                                                        |
+| Server exact output TPS    | Output token throughput from vLLM server-side token counters captured through metrics snapshots.                        |
+| Error rate                 | HTTP/client errors plus timeouts divided by measured requests.                                                          |
 
 ## Server And vLLM Profile
 
@@ -189,37 +159,24 @@ The public manifest keeps only benchmark-relevant hardware and runtime
 metadata. It removes private hostnames, paths, services, credentials, and
 deployment details.
 
-| Domain | Public benchmark value |
-| --- | --- |
-| Runtime | vLLM `0.21.0`, PyTorch `2.11.0+cu130`, NVIDIA driver `595.58.03`, CUDA runtime `13.2` |
-| GPUs | 2 x NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB VRAM per GPU |
-| Parallelism | tensor parallel `2`, pipeline `1`, data parallel `1` |
-| vLLM limits | `max_model_len=32768`, `max_num_seqs=64`, `gpu_memory_utilization=0.90` |
-| Scheduler | async scheduling and chunked prefill enabled |
-| CPU/RAM | 32 logical CPUs, 251 GiB RAM |
+| Domain      | Public benchmark value                                                                |
+| ----------- | ------------------------------------------------------------------------------------- |
+| Runtime     | vLLM `0.21.0`, PyTorch `2.11.0+cu130`, NVIDIA driver `595.58.03`, CUDA runtime `13.2` |
+| GPUs        | 2 x NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB VRAM per GPU              |
+| Parallelism | tensor parallel `2`, pipeline `1`, data parallel `1`                                  |
+| vLLM limits | `max_model_len=32768`, `max_num_seqs=64`, `gpu_memory_utilization=0.90`               |
+| Scheduler   | async scheduling and chunked prefill enabled                                          |
+| CPU/RAM     | 32 logical CPUs, 251 GiB RAM                                                          |
 
 `max_num_seqs=64` is the key interpretation threshold. TTFT stays below
 1 second while observed inflight requests remain near or below this
 limit. Once inflight requests exceed it substantially, vLLM keeps serving
 without errors but introduces queueing before the first token.
 
-## Operational Interpretation
+## Charts
 
-The practical production reading is:
-
-- keep strict interactive routing near or below `2 rps` completed
-  throughput for this workload;
-- allow tolerant internal traffic up to about `6 rps` offered load only
-  if multi-second TTFT is acceptable;
-- treat `8-10 rps` offered load as batch-style traffic;
-- apply a rate limiter or admission controller to keep interactive
-  traffic near or below the `max_num_seqs=64` region;
-- route long-context workloads into a separate pool or capacity class,
-  because this benchmark is short-context and decode-heavy.
-
-## Open-Loop Charts
-
-These charts correspond to the primary request-rate sweep.
+<details>
+<summary>Additional open-loop charts</summary>
 
 ![Open-loop offered vs completed RPS](assets/open-loop-offered-vs-completed-rps.svg)
 
@@ -227,9 +184,14 @@ These charts correspond to the primary request-rate sweep.
 
 ![Open-loop completed RPS vs p95 TTFT](assets/open-loop-rps-vs-ttft.svg)
 
-![Open-loop capacity frontier](assets/open-loop-capacity-frontier.svg)
+</details>
 
-## Closed-Loop Appendix Charts
+<details>
+<summary>Closed-loop throughput appendix charts</summary>
+
+These charts come from a companion closed-loop throughput sweep. They
+contextualize the throughput plateau, but the primary public result is
+the open-loop request-rate sweep above.
 
 ![Concurrency vs p95 TTFT](assets/nemotron-load-p95-ttft.svg)
 
@@ -237,48 +199,7 @@ These charts correspond to the primary request-rate sweep.
 
 ![Concurrency vs output TPS](assets/nemotron-load-output-tps.svg)
 
-These charts come from the companion closed-loop throughput sweep. They
-are included because they contextualize the throughput plateau mentioned
-in the internal report. The primary public request-rate data is the CSV
-and stress profiles under `data/`.
-
-## Data Files
-
-| Path | Content |
-| --- | --- |
-| [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv) | Combined request-rate summary from `0.25` to `10 rps` |
-| [`data/goodput-slo-summary.csv`](data/goodput-slo-summary.csv) | Per-level SLO pass rates computed from measured request records |
-| [`data/baseline-request-rate/manifest.public.json`](data/baseline-request-rate/manifest.public.json) | Public manifest for `0.25` to `2 rps` |
-| [`data/baseline-request-rate/metrics.json`](data/baseline-request-rate/metrics.json) | Aggregate benchmark metrics for baseline run |
-| [`data/baseline-request-rate/stress-profile.csv`](data/baseline-request-rate/stress-profile.csv) | Per-level stress profile for baseline run |
-| [`data/baseline-request-rate/stress-results.metrics-only.jsonl`](data/baseline-request-rate/stress-results.metrics-only.jsonl) | Per-request metrics with generated content removed |
-| [`data/baseline-request-rate/server-metrics.public.jsonl`](data/baseline-request-rate/server-metrics.public.jsonl) | Public server metric snapshots with endpoint removed |
-| [`data/high-request-rate/manifest.public.json`](data/high-request-rate/manifest.public.json) | Public manifest for `3` to `10 rps` |
-| [`data/high-request-rate/metrics.json`](data/high-request-rate/metrics.json) | Aggregate benchmark metrics for high-rate run |
-| [`data/high-request-rate/stress-profile.csv`](data/high-request-rate/stress-profile.csv) | Per-level stress profile for high-rate run |
-| [`data/high-request-rate/stress-results.metrics-only.jsonl`](data/high-request-rate/stress-results.metrics-only.jsonl) | Per-request metrics with generated content removed |
-| [`data/high-request-rate/server-metrics.public.jsonl`](data/high-request-rate/server-metrics.public.jsonl) | Public server metric snapshots with endpoint removed |
-| [`data/reference-runs/`](data/reference-runs/) | Sanitized metrics-only appendices for smoke, quality, long-context, stress, and closed-loop throughput runs cited by the source report |
-| [`DATA_NOTICE.md`](DATA_NOTICE.md) | Sanitization and inclusion notice |
-
-The `reference-runs` directory is included for traceability. It is not
-the primary request-rate score. Each run directory contains a public
-manifest, aggregate metrics, stress profile when applicable, and JSONL
-metrics-only records. Raw generated response bodies are not included.
-
-## Efficiency Metrics
-
-The public artifacts support these simple efficiency readings:
-
-| Offered load | Server exact output TPS | GPUs | Output TPS/GPU | Completed RPS/GPU |
-| ---: | ---: | ---: | ---: | ---: |
-| `2 rps` | `991.5` | 2 | `495.8` | `0.968` |
-| `6 rps` | `2349.0` | 2 | `1174.5` | `2.294` |
-| `10 rps` | `2528.0` | 2 | `1264.0` | `2.469` |
-
-Cost per million tokens and watts per million tokens are intentionally
-not reported because the public export does not include GPU power,
-energy, cloud pricing, or amortized hardware cost data.
+</details>
 
 ## Known Limitations
 
@@ -321,15 +242,58 @@ coverage:
 - publish cost per million output tokens and watts per million output
   tokens if the underlying cost and power data can be shared.
 
+## Data Files
+
+| Path                                                                                                                           | Content                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv)                                             | Combined request-rate summary from `0.25` to `10 rps`                                                                                  |
+| [`data/goodput-slo-summary.csv`](data/goodput-slo-summary.csv)                                                                 | Per-level SLO pass rates computed from measured request records                                                                        |
+| [`data/baseline-request-rate/manifest.public.json`](data/baseline-request-rate/manifest.public.json)                           | Public manifest for `0.25` to `2 rps`                                                                                                  |
+| [`data/baseline-request-rate/metrics.json`](data/baseline-request-rate/metrics.json)                                           | Aggregate benchmark metrics for baseline run                                                                                           |
+| [`data/baseline-request-rate/stress-profile.csv`](data/baseline-request-rate/stress-profile.csv)                               | Per-level stress profile for baseline run                                                                                              |
+| [`data/baseline-request-rate/stress-results.metrics-only.jsonl`](data/baseline-request-rate/stress-results.metrics-only.jsonl) | Per-request metrics with generated content removed                                                                                     |
+| [`data/baseline-request-rate/server-metrics.public.jsonl`](data/baseline-request-rate/server-metrics.public.jsonl)             | Public server metric snapshots with endpoint removed                                                                                   |
+| [`data/high-request-rate/manifest.public.json`](data/high-request-rate/manifest.public.json)                                   | Public manifest for `3` to `10 rps`                                                                                                    |
+| [`data/high-request-rate/metrics.json`](data/high-request-rate/metrics.json)                                                   | Aggregate benchmark metrics for high-rate run                                                                                          |
+| [`data/high-request-rate/stress-profile.csv`](data/high-request-rate/stress-profile.csv)                                       | Per-level stress profile for high-rate run                                                                                             |
+| [`data/high-request-rate/stress-results.metrics-only.jsonl`](data/high-request-rate/stress-results.metrics-only.jsonl)         | Per-request metrics with generated content removed                                                                                     |
+| [`data/high-request-rate/server-metrics.public.jsonl`](data/high-request-rate/server-metrics.public.jsonl)                     | Public server metric snapshots with endpoint removed                                                                                   |
+| [`data/reference-runs/`](data/reference-runs/)                                                                                 | Sanitized metrics-only appendices for smoke, quality, long-context, stress, and closed-loop throughput runs cited by the source report |
+| [`DATA_NOTICE.md`](DATA_NOTICE.md)                                                                                             | Sanitization and inclusion notice                                                                                                      |
+
+The `reference-runs` directory is included for traceability. It is not
+the primary request-rate score. Each run directory contains a public
+manifest, aggregate metrics, stress profile when applicable, and JSONL
+metrics-only records. Raw generated response bodies are not included.
+
+## Efficiency Metrics
+
+The public artifacts support these simple efficiency readings:
+
+| Offered load | Server exact output TPS | GPUs | Output TPS/GPU | Completed RPS/GPU |
+| -----------: | ----------------------: | ---: | -------------: | ----------------: |
+|      `2 rps` |                 `991.5` |    2 |        `495.8` |           `0.968` |
+|      `6 rps` |                `2349.0` |    2 |       `1174.5` |           `2.294` |
+|     `10 rps` |                `2528.0` |    2 |       `1264.0` |           `2.469` |
+
+Cost per million tokens and watts per million tokens are intentionally
+not reported because the public export does not include GPU power,
+energy, cloud pricing, or amortized hardware cost data.
+
+## Data Reuse And Citation
+
+This dataset is released under the terms described in [`LICENSE`](LICENSE).
+Citation metadata is provided in [`CITATION.cff`](CITATION.cff).
+
 ## Public-Safety Scope
 
 This export intentionally excludes:
 
-- API keys, bearer tokens, Kubernetes secrets, and credentials.
-- Internal service URLs, cluster namespaces, private hostnames, and local
-  filesystem paths.
-- Kubernetes manifests, deployment files, and codebase source files.
-- Generated model response bodies from raw stress JSONL files.
+- API keys, bearer tokens, Kubernetes secrets, and credentials;
+- internal service URLs, cluster namespaces, private hostnames, and local
+  filesystem paths;
+- Kubernetes manifests, deployment files, and codebase source files;
+- generated model response bodies from raw stress JSONL files.
 
 The package is meant to be published as benchmark evidence, not as an
 operational runbook for the private infrastructure used to run it.
