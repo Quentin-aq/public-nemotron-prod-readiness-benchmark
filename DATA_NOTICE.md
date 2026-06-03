@@ -1,12 +1,14 @@
 # Public Data Notice
 
-This folder is a sanitized public export of the 2026-06-02 Nemotron 3
-Nano production-readiness benchmark.
+This folder is a sanitized public export of the Nemotron 3 Nano
+production-readiness benchmark. The primary README analysis reflects the
+2026-06-03 authenticated-metrics request-rate run.
 
 Included:
 
 - aggregate CSV summaries;
 - Goodput / SLO pass-rate CSV computed from per-request measured records;
+- per-level server metric deltas from authenticated Prometheus scrapes;
 - public manifests reconstructed from the original manifests;
 - stress profiles and aggregate metrics;
 - per-request JSONL metrics with generated response text removed;
