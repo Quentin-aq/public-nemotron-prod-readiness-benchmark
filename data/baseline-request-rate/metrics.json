@@ -1,0 +1,81 @@
+{
+  "verdict": "go",
+  "qualityScore": 1,
+  "errorRate": 0,
+  "timeoutRate": 0,
+  "hallucinationCriticalRate": 0,
+  "refusalUnjustifiedRate": 0,
+  "emptyOutputRate": 0,
+  "thinkPollutionRate": 0,
+  "jsonValidityRate": null,
+  "finishReasons": {},
+  "latencyMs": {
+    "p50": 3886,
+    "p95": 6176,
+    "p99": 6176
+  },
+  "tokensPerSecond": {
+    "p50": 128,
+    "p95": 193
+  },
+  "goodput": {
+    "chatPremium": {
+      "label": "Chat premium",
+      "maxOutputTokensPerSecond": 948.6675,
+      "maxRequestsPerSecond": 1.9365,
+      "bestConcurrency": 13,
+      "bestLevel": "2rps",
+      "passingLevels": [
+        "0.25rps",
+        "0.5rps",
+        "0.75rps",
+        "1rps",
+        "1.25rps",
+        "1.5rps",
+        "2rps"
+      ],
+      "criteria": "p95 TTFT < 1s and p95 e2e < 8s"
+    },
+    "internalUsage": {
+      "label": "Usage interne tolerant",
+      "maxOutputTokensPerSecond": 948.6675,
+      "maxRequestsPerSecond": 1.9365,
+      "bestConcurrency": 13,
+      "bestLevel": "2rps",
+      "passingLevels": [
+        "0.25rps",
+        "0.5rps",
+        "0.75rps",
+        "1rps",
+        "1.25rps",
+        "1.5rps",
+        "2rps"
+      ],
+      "criteria": "p95 TTFT < 8s and p95 e2e < 20s"
+    },
+    "batchJobs": {
+      "label": "Batch/jobs agents",
+      "maxOutputTokensPerSecond": 948.6675,
+      "maxRequestsPerSecond": 1.9365,
+      "bestConcurrency": 13,
+      "bestLevel": "2rps",
+      "passingLevels": [
+        "0.25rps",
+        "0.5rps",
+        "0.75rps",
+        "1rps",
+        "1.25rps",
+        "1.5rps",
+        "2rps"
+      ],
+      "criteria": "errors < 1% and p99 e2e < 120s"
+    }
+  },
+  "totalRequests": 870,
+  "successfulRequests": 870,
+  "thresholds": {
+    "go": "quality >= 0.85, errors <= 2%, critical hallucination <= 1%, p95 <= 30s at concurrency 4",
+    "limited": "quality >= 0.75 with explicit load, JSON, or long-context limits",
+    "noGo": "empty outputs, reasoning pollution, instability, or errors > 10% under moderate load"
+  }
+}

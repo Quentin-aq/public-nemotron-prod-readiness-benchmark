@@ -1,0 +1,4 @@
+concurrency,startedAt,requests,ok,errors,timeouts,errorRate,p50LatencyMs,p95LatencyMs,p99LatencyMs,medianTokensPerSecond,stopReason
+1,2026-06-02T09:29:04.857Z,20,20,0,0,0,628,639,663,13,request-limit
+2,2026-06-02T09:29:17.287Z,20,20,0,0,0,637,655,670,13,request-limit
+4,2026-06-02T09:29:23.701Z,20,20,0,0,0,640,650,655,13,request-limit

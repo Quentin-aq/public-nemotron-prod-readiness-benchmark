@@ -1,0 +1,69 @@
+{
+  "verdict": "go",
+  "qualityScore": 1,
+  "errorRate": 0,
+  "timeoutRate": 0,
+  "hallucinationCriticalRate": 0,
+  "refusalUnjustifiedRate": 0,
+  "emptyOutputRate": 0,
+  "thinkPollutionRate": 0,
+  "jsonValidityRate": null,
+  "finishReasons": {},
+  "latencyMs": {
+    "p50": 12073,
+    "p95": 25948,
+    "p99": 25948
+  },
+  "tokensPerSecond": {
+    "p50": 38,
+    "p95": 61
+  },
+  "goodput": {
+    "chatPremium": {
+      "label": "Chat premium",
+      "maxOutputTokensPerSecond": 0,
+      "maxRequestsPerSecond": 0,
+      "bestConcurrency": null,
+      "bestLevel": null,
+      "passingLevels": [],
+      "criteria": "p95 TTFT < 1s and p95 e2e < 8s"
+    },
+    "internalUsage": {
+      "label": "Usage interne tolerant",
+      "maxOutputTokensPerSecond": 2351.9078,
+      "maxRequestsPerSecond": 4.5879,
+      "bestConcurrency": 89,
+      "bestLevel": "6rps",
+      "passingLevels": [
+        "3rps",
+        "4rps",
+        "5rps",
+        "6rps"
+      ],
+      "criteria": "p95 TTFT < 8s and p95 e2e < 20s"
+    },
+    "batchJobs": {
+      "label": "Batch/jobs agents",
+      "maxOutputTokensPerSecond": 2523.0826,
+      "maxRequestsPerSecond": 4.9375,
+      "bestConcurrency": 167,
+      "bestLevel": "10rps",
+      "passingLevels": [
+        "3rps",
+        "4rps",
+        "5rps",
+        "6rps",
+        "8rps",
+        "10rps"
+      ],
+      "criteria": "errors < 1% and p99 e2e < 120s"
+    }
+  },
+  "totalRequests": 1440,
+  "successfulRequests": 1440,
+  "thresholds": {
+    "go": "quality >= 0.85, errors <= 2%, critical hallucination <= 1%, p95 <= 30s at concurrency 4",
+    "limited": "quality >= 0.75 with explicit load, JSON, or long-context limits",
+    "noGo": "empty outputs, reasoning pollution, instability, or errors > 10% under moderate load"
+  }
+}

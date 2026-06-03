@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="360" viewBox="0 0 820 360" role="img" aria-labelledby="title desc">
+  <title id="title">Nemotron load test: concurrence vs p95 TTFT</title>
+  <desc id="desc">Line chart showing p95 time to first token increasing from 527 ms at concurrency 1 to 44582 ms at concurrency 512.</desc>
+  <rect width="820" height="360" fill="#ffffff"/>
+  <text x="410" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Concurrence vs p95 TTFT</text>
+  <text x="410" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Payload throughput, stream=true, max_tokens=512</text>
+  <line x1="60" y1="300" x2="780" y2="300" stroke="#111827" stroke-width="1"/>
+  <line x1="60" y1="60" x2="60" y2="300" stroke="#111827" stroke-width="1"/>
+  <g font-family="Arial, sans-serif" font-size="11" fill="#4b5563">
+    <text x="56" y="304" text-anchor="end">0</text>
+    <text x="56" y="224" text-anchor="end">15s</text>
+    <text x="56" y="144" text-anchor="end">30s</text>
+    <text x="56" y="64" text-anchor="end">45s</text>
+    <text x="60" y="322" text-anchor="middle">1</text>
+    <text x="146" y="322" text-anchor="middle">64</text>
+    <text x="234" y="322" text-anchor="middle">128</text>
+    <text x="409" y="322" text-anchor="middle">256</text>
+    <text x="585" y="322" text-anchor="middle">384</text>
+    <text x="760" y="322" text-anchor="middle">512</text>
+  </g>
+  <g stroke="#e5e7eb" stroke-width="1">
+    <line x1="60" y1="220" x2="780" y2="220"/>
+    <line x1="60" y1="140" x2="780" y2="140"/>
+    <line x1="60" y1="60" x2="780" y2="60"/>
+  </g>
+  <line x1="60" y1="140" x2="780" y2="140" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="772" y="134" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#ef4444">seuil UX 30s</text>
+  <polyline fill="none" stroke="#2563eb" stroke-width="3" points="60,297.2 61.4,297 64.1,296.9 69.6,296.7 75.1,296 80.5,296.5 91.5,295.7 102.5,295.6 124.4,294.8 146.3,294.7 190.1,260.8 234,257.2 321.6,227.9 409.3,200.5 584.7,114.4 760,62.2"/>
+  <g fill="#2563eb" stroke="#ffffff" stroke-width="1.5">
+    <circle cx="60" cy="297.2" r="4"/><circle cx="61.4" cy="297" r="4"/><circle cx="64.1" cy="296.9" r="4"/><circle cx="69.6" cy="296.7" r="4"/><circle cx="75.1" cy="296" r="4"/><circle cx="80.5" cy="296.5" r="4"/><circle cx="91.5" cy="295.7" r="4"/><circle cx="102.5" cy="295.6" r="4"/><circle cx="124.4" cy="294.8" r="4"/><circle cx="146.3" cy="294.7" r="4"/><circle cx="190.1" cy="260.8" r="4"/><circle cx="234" cy="257.2" r="4"/><circle cx="321.6" cy="227.9" r="4"/><circle cx="409.3" cy="200.5" r="4"/><circle cx="584.7" cy="114.4" r="4"/><circle cx="760" cy="62.2" r="4"/>
+  </g>
+  <text x="410" y="345" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#111827">Concurrence</text>
+  <text x="18" y="180" text-anchor="middle" transform="rotate(-90 18 180)" font-family="Arial, sans-serif" font-size="12" fill="#111827">p95 TTFT</text>
+</svg>

@@ -1,0 +1,52 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="820" height="420" viewBox="0 0 820 420" role="img" aria-labelledby="title desc">
+<title id="title">Capacity frontier: output TPS vs p95 TTFT</title>
+<desc id="desc">Higher output throughput is bought with higher p95 TTFT past the interactive region</desc>
+<rect width="820" height="420" fill="#ffffff"/>
+<text x="410" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Capacity frontier: output TPS vs p95 TTFT</text>
+<text x="410" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Higher output throughput is bought with higher p95 TTFT past the interactive region</text>
+<line x1="78" y1="72" x2="78" y2="356" stroke="#111827" stroke-width="1"/>
+<line x1="78" y1="356" x2="782" y2="356" stroke="#111827" stroke-width="1"/>
+<line x1="78" y1="72" x2="78" y2="356" stroke="#e5e7eb"/>
+<text x="78" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">0</text>
+<line x1="78" y1="356" x2="782" y2="356" stroke="#e5e7eb"/>
+<text x="68" y="360" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">0</text>
+<line x1="218.8" y1="72" x2="218.8" y2="356" stroke="#e5e7eb"/>
+<text x="218.8" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">3400</text>
+<line x1="78" y1="299.2" x2="782" y2="299.2" stroke="#e5e7eb"/>
+<text x="68" y="303.2" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">520</text>
+<line x1="359.6" y1="72" x2="359.6" y2="356" stroke="#e5e7eb"/>
+<text x="359.6" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">6800</text>
+<line x1="78" y1="242.4" x2="782" y2="242.4" stroke="#e5e7eb"/>
+<text x="68" y="246.4" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">1040</text>
+<line x1="500.4" y1="72" x2="500.4" y2="356" stroke="#e5e7eb"/>
+<text x="500.4" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">10200</text>
+<line x1="78" y1="185.6" x2="782" y2="185.6" stroke="#e5e7eb"/>
+<text x="68" y="189.6" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">1560</text>
+<line x1="641.2" y1="72" x2="641.2" y2="356" stroke="#e5e7eb"/>
+<text x="641.2" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">13600</text>
+<line x1="78" y1="128.8" x2="782" y2="128.8" stroke="#e5e7eb"/>
+<text x="68" y="132.8" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">2080</text>
+<line x1="782" y1="72" x2="782" y2="356" stroke="#e5e7eb"/>
+<text x="782" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">17000</text>
+<line x1="78" y1="72" x2="782" y2="72" stroke="#e5e7eb"/>
+<text x="68" y="76" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">2600</text>
+<text x="410" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#111827">p95 TTFT (ms)</text>
+<text x="18" y="210" text-anchor="middle" transform="rotate(-90 18 210)" font-family="Arial, sans-serif" font-size="12" fill="#111827">Server exact output tokens/s</text>
+<polyline fill="none" stroke="#059669" stroke-width="2.5" points="102,342 100,328.1 100.5,314.5 99.8,301.1 100.3,287.6 100.2,274.2 100.4,247.7 101.5,198.9 102.6,154.5 103.9,114.7 271.8,99.4 556.8,84.2 761.2,79.9"/>
+<circle cx="102" cy="342" r="3.5" fill="#059669"/>
+<circle cx="100" cy="328.1" r="3.5" fill="#059669"/>
+<circle cx="100.5" cy="314.5" r="3.5" fill="#059669"/>
+<circle cx="99.8" cy="301.1" r="3.5" fill="#059669"/>
+<circle cx="100.3" cy="287.6" r="3.5" fill="#059669"/>
+<circle cx="100.2" cy="274.2" r="3.5" fill="#059669"/>
+<circle cx="100.4" cy="247.7" r="3.5" fill="#059669"/>
+<circle cx="101.5" cy="198.9" r="3.5" fill="#059669"/>
+<circle cx="102.6" cy="154.5" r="3.5" fill="#059669"/>
+<circle cx="103.9" cy="114.7" r="3.5" fill="#059669"/>
+<circle cx="271.8" cy="99.4" r="3.5" fill="#059669"/>
+<circle cx="556.8" cy="84.2" r="3.5" fill="#059669"/>
+<circle cx="761.2" cy="79.9" r="3.5" fill="#059669"/>
+<rect x="620" y="68" width="12" height="3" fill="#059669"/>
+<text x="638" y="73" font-family="Arial, sans-serif" font-size="11" fill="#374151">Output TPS</text>
+</svg>
+

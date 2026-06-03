@@ -1,0 +1,57 @@
+﻿{
+    "benchmark":  "nemotron-3-nano-prod-readiness",
+    "generatedAt":  "2026-06-02T09:39:33.739Z",
+    "runLabel":  "nemotron-step-19-stress-pushed-c16",
+    "dryRun":  false,
+    "suite":  "stress",
+    "benchmarkScope":  null,
+    "model":  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+    "endpoint":  "redacted: internal benchmark endpoint",
+    "publicationSanitization":  {
+                                    "secretsIncluded":  false,
+                                    "internalEndpointsIncluded":  false,
+                                    "localPathsIncluded":  false,
+                                    "generatedResponseContentIncluded":  false,
+                                    "note":  "Public manifest reconstructed from the original benchmark manifest. Internal deployment details were removed."
+                                },
+    "parameters":  {
+                       "temperature":  0,
+                       "topP":  1,
+                       "maxTokens":  1024,
+                       "maxTokensMatrix":  [
+                                               256,
+                                               1024,
+                                               4096
+                                           ],
+                       "stream":  true,
+                       "runs":  1,
+                       "parallelism":  16,
+                       "timeoutMs":  120000,
+                       "stress":  {
+                                      "warmupRequests":  10,
+                                      "concurrencyLevels":  [
+                                                                12,
+                                                                16
+                                                            ],
+                                      "durationMsPerLevel":  120000,
+                                      "requestLimitPerLevel":  100,
+                                      "stopCriteria":  [
+                                                           "error_rate \u003e 10%",
+                                                           "p99 \u003e 120s",
+                                                           "5 consecutive timeouts"
+                                                       ]
+                                  },
+                       "chatTemplateKwargs":  {
+                                                  "enable_thinking":  false
+                                              }
+                   },
+    "cases":  [
+                  {
+                      "id":  "stress-short-chat",
+                      "axis":  "stress",
+                      "category":  "latency",
+                      "maxTokens":  64
+                  }
+              ],
+    "modelSnapshot":  "cbd3fa9f933d55ef16a84236559f4ee2a0526848"
+}

@@ -1,0 +1,96 @@
+﻿{
+    "benchmark":  "nemotron-3-nano-prod-readiness",
+    "generatedAt":  "2026-06-02T17:30:14.913Z",
+    "runLabel":  "high-request-rate",
+    "suite":  "stress",
+    "benchmarkScope":  "model-serving",
+    "model":  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+    "endpoint":  "redacted: internal OpenAI-compatible vLLM endpoint",
+    "publicationSanitization":  {
+                                    "secretsIncluded":  false,
+                                    "internalEndpointsIncluded":  false,
+                                    "localPathsIncluded":  false,
+                                    "generatedResponseContentIncluded":  false,
+                                    "note":  "Public manifest reconstructed from the original benchmark manifest. Internal hostnames, namespaces, file paths, service names, and API locations were removed."
+                                },
+    "serverProfile":  {
+                          "capturedAt":  "2026-06-02",
+                          "runtime":  {
+                                          "vllm":  "0.21.0",
+                                          "pytorch":  "2.11.0+cu130",
+                                          "nvidiaDriver":  "595.58.03",
+                                          "cudaRuntime":  "13.2"
+                                      },
+                          "model":  {
+                                        "servedModelName":  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+                                        "modelSnapshot":  "cbd3fa9f933d55ef16a84236559f4ee2a0526848"
+                                    },
+                          "hardware":  {
+                                           "gpuCount":  2,
+                                           "gpuName":  "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+                                           "vramMiBPerGpu":  97887,
+                                           "cpuModel":  "Intel(R) Xeon(R) 6507P",
+                                           "logicalCpus":  32,
+                                           "memoryGiB":  251,
+                                           "gpuTopology":  "SYS"
+                                       },
+                          "vllmParameters":  {
+                                                 "dtype":  "bfloat16",
+                                                 "tensorParallelSize":  2,
+                                                 "pipelineParallelSize":  1,
+                                                 "dataParallelSize":  1,
+                                                 "asyncScheduling":  true,
+                                                 "chunkedPrefill":  true,
+                                                 "maxModelLen":  32768,
+                                                 "maxNumSeqs":  64,
+                                                 "gpuMemoryUtilization":  0.9,
+                                                 "forceIncludeUsage":  true
+                                             }
+                      },
+    "parameters":  {
+                       "temperature":  0,
+                       "topP":  1,
+                       "stream":  true,
+                       "timeoutMs":  120000,
+                       "stress":  {
+                                      "mode":  "request-rate",
+                                      "payload":  "throughput",
+                                      "maxTokens":  512,
+                                      "warmupRequests":  3,
+                                      "concurrencyLevels":  [
+                                                                1,
+                                                                2,
+                                                                4,
+                                                                8,
+                                                                12,
+                                                                16
+                                                            ],
+                                      "requestRateLevels":  [
+                                                                3,
+                                                                4,
+                                                                5,
+                                                                6,
+                                                                8,
+                                                                10
+                                                            ],
+                                      "requestRateMaxInflight":  256,
+                                      "durationMsPerLevel":  120000,
+                                      "cooldownMsBetweenLevels":  60000,
+                                      "requestLimitPerLevel":  240,
+                                      "stopCriteria":  [
+                                                           "error_rate \u003e 10%",
+                                                           "p99 \u003e 120s",
+                                                           "5 consecutive timeouts"
+                                                       ]
+                                  },
+                       "metricsScrape":  true
+                   },
+    "cases":  [
+                  {
+                      "id":  "stress-throughput-generation",
+                      "axis":  "stress",
+                      "category":  "throughput",
+                      "maxTokens":  512
+                  }
+              ]
+}

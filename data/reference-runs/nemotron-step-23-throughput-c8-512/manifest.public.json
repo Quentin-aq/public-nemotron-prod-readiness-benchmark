@@ -1,0 +1,61 @@
+﻿{
+    "benchmark":  "nemotron-3-nano-prod-readiness",
+    "generatedAt":  "2026-06-02T09:51:22.503Z",
+    "runLabel":  "nemotron-step-23-throughput-c8-512",
+    "dryRun":  false,
+    "suite":  "stress",
+    "benchmarkScope":  null,
+    "model":  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+    "endpoint":  "redacted: internal benchmark endpoint",
+    "publicationSanitization":  {
+                                    "secretsIncluded":  false,
+                                    "internalEndpointsIncluded":  false,
+                                    "localPathsIncluded":  false,
+                                    "generatedResponseContentIncluded":  false,
+                                    "note":  "Public manifest reconstructed from the original benchmark manifest. Internal deployment details were removed."
+                                },
+    "parameters":  {
+                       "temperature":  0,
+                       "topP":  1,
+                       "maxTokens":  1024,
+                       "maxTokensMatrix":  [
+                                               256,
+                                               1024,
+                                               4096
+                                           ],
+                       "stream":  true,
+                       "runs":  1,
+                       "parallelism":  8,
+                       "timeoutMs":  120000,
+                       "stress":  {
+                                      "payload":  "throughput",
+                                      "maxTokens":  512,
+                                      "warmupRequests":  5,
+                                      "concurrencyLevels":  [
+                                                                1,
+                                                                2,
+                                                                4,
+                                                                8
+                                                            ],
+                                      "durationMsPerLevel":  120000,
+                                      "requestLimitPerLevel":  20,
+                                      "stopCriteria":  [
+                                                           "error_rate \u003e 10%",
+                                                           "p99 \u003e 120s",
+                                                           "5 consecutive timeouts"
+                                                       ]
+                                  },
+                       "chatTemplateKwargs":  {
+                                                  "enable_thinking":  false
+                                              }
+                   },
+    "cases":  [
+                  {
+                      "id":  "stress-throughput-generation",
+                      "axis":  "stress",
+                      "category":  "throughput",
+                      "maxTokens":  512
+                  }
+              ],
+    "modelSnapshot":  "cbd3fa9f933d55ef16a84236559f4ee2a0526848"
+}

@@ -1,0 +1,31 @@
+{
+  "verdict": "go",
+  "qualityScore": 1,
+  "errorRate": 0,
+  "timeoutRate": 0,
+  "hallucinationCriticalRate": 0,
+  "refusalUnjustifiedRate": 0,
+  "emptyOutputRate": 0,
+  "thinkPollutionRate": 0,
+  "jsonValidityRate": null,
+  "finishReasons": {
+    "http-preflight": 2,
+    "stop": 4
+  },
+  "latencyMs": {
+    "p50": 623,
+    "p95": 2563,
+    "p99": 2563
+  },
+  "tokensPerSecond": {
+    "p50": 10,
+    "p95": 25
+  },
+  "totalRequests": 6,
+  "successfulRequests": 6,
+  "thresholds": {
+    "go": "quality >= 0.85, errors <= 2%, critical hallucination <= 1%, p95 <= 30s at concurrency 4",
+    "limited": "quality >= 0.75 with explicit load, JSON, or long-context limits",
+    "noGo": "empty outputs, reasoning pollution, instability, or errors > 10% under moderate load"
+  }
+}

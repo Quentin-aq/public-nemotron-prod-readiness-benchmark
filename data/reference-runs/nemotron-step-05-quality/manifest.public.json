@@ -1,0 +1,193 @@
+﻿{
+    "benchmark":  "nemotron-3-nano-prod-readiness",
+    "generatedAt":  "2026-06-02T08:39:37.032Z",
+    "runLabel":  "nemotron-step-05-quality",
+    "dryRun":  false,
+    "suite":  "quality",
+    "benchmarkScope":  null,
+    "model":  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+    "endpoint":  "redacted: internal benchmark endpoint",
+    "publicationSanitization":  {
+                                    "secretsIncluded":  false,
+                                    "internalEndpointsIncluded":  false,
+                                    "localPathsIncluded":  false,
+                                    "generatedResponseContentIncluded":  false,
+                                    "note":  "Public manifest reconstructed from the original benchmark manifest. Internal deployment details were removed."
+                                },
+    "parameters":  {
+                       "temperature":  0,
+                       "topP":  1,
+                       "maxTokens":  1024,
+                       "maxTokensMatrix":  [
+                                               256,
+                                               1024,
+                                               4096
+                                           ],
+                       "stream":  false,
+                       "runs":  1,
+                       "parallelism":  2,
+                       "timeoutMs":  120000,
+                       "stress":  {
+                                      "warmupRequests":  10,
+                                      "concurrencyLevels":  [
+                                                                1,
+                                                                2,
+                                                                4,
+                                                                8,
+                                                                12,
+                                                                16
+                                                            ],
+                                      "durationMsPerLevel":  180000,
+                                      "requestLimitPerLevel":  100,
+                                      "stopCriteria":  [
+                                                           "error_rate \u003e 10%",
+                                                           "p99 \u003e 120s",
+                                                           "5 consecutive timeouts"
+                                                       ]
+                                  },
+                       "chatTemplateKwargs":  {
+                                                  "enable_thinking":  false
+                                              }
+                   },
+    "cases":  [
+                  {
+                      "id":  "preflight-enable-thinking-false",
+                      "axis":  "preflight",
+                      "category":  "reasoning-pollution",
+                      "maxTokens":  64
+                  },
+                  {
+                      "id":  "quality-factual-short",
+                      "axis":  "quality",
+                      "category":  "factual",
+                      "maxTokens":  32
+                  },
+                  {
+                      "id":  "quality-structured-reasoning",
+                      "axis":  "quality",
+                      "category":  "structured-reasoning",
+                      "maxTokens":  256
+                  },
+                  {
+                      "id":  "quality-json-strict",
+                      "axis":  "quality",
+                      "category":  "json",
+                      "maxTokens":  128
+                  },
+                  {
+                      "id":  "quality-french-synthesis",
+                      "axis":  "quality",
+                      "category":  "french-synthesis",
+                      "maxTokens":  256
+                  },
+                  {
+                      "id":  "quality-adversarial-injection",
+                      "axis":  "quality",
+                      "category":  "adversarial",
+                      "maxTokens":  128
+                  },
+                  {
+                      "id":  "quality-contradictory-json",
+                      "axis":  "quality",
+                      "category":  "adversarial",
+                      "maxTokens":  128
+                  },
+                  {
+                      "id":  "supply-chain-smoke-lookup-supplier-risk",
+                      "axis":  "quality",
+                      "category":  "bench-pack-lookup",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-lookup-component-detail",
+                      "axis":  "quality",
+                      "category":  "bench-pack-lookup",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-lookup-order-status",
+                      "axis":  "quality",
+                      "category":  "bench-pack-lookup",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-traversal-supplier-components",
+                      "axis":  "quality",
+                      "category":  "bench-pack-traversal",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-traversal-order-components",
+                      "axis":  "quality",
+                      "category":  "bench-pack-traversal",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-traversal-client-orders",
+                      "axis":  "quality",
+                      "category":  "bench-pack-traversal",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-traversal-shortest-path",
+                      "axis":  "quality",
+                      "category":  "bench-pack-traversal",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-governance-blacklist-impact",
+                      "axis":  "quality",
+                      "category":  "bench-pack-governance",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-governance-check",
+                      "axis":  "quality",
+                      "category":  "bench-pack-governance",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "supply-chain-smoke-governance-approval-required",
+                      "axis":  "quality",
+                      "category":  "bench-pack-governance",
+                      "maxTokens":  512
+                  },
+                  {
+                      "id":  "ooda-persona-np-sql-001",
+                      "axis":  "quality",
+                      "category":  "ooda-persona-sql",
+                      "maxTokens":  384
+                  },
+                  {
+                      "id":  "ooda-persona-np-sql-002",
+                      "axis":  "quality",
+                      "category":  "ooda-persona-sql",
+                      "maxTokens":  384
+                  },
+                  {
+                      "id":  "ooda-persona-np-sql-003",
+                      "axis":  "quality",
+                      "category":  "ooda-persona-sql",
+                      "maxTokens":  384
+                  },
+                  {
+                      "id":  "ooda-persona-np-sql-004",
+                      "axis":  "quality",
+                      "category":  "ooda-persona-sql",
+                      "maxTokens":  384
+                  },
+                  {
+                      "id":  "ooda-persona-np-sql-005",
+                      "axis":  "quality",
+                      "category":  "ooda-persona-sql",
+                      "maxTokens":  384
+                  },
+                  {
+                      "id":  "ooda-persona-np-sql-006",
+                      "axis":  "quality",
+                      "category":  "ooda-persona-sql",
+                      "maxTokens":  384
+                  }
+              ],
+    "modelSnapshot":  "cbd3fa9f933d55ef16a84236559f4ee2a0526848"
+}

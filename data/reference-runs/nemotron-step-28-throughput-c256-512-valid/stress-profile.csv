@@ -1,0 +1,3 @@
+concurrency,startedAt,requests,ok,errors,timeouts,errorRate,p50LatencyMs,p95LatencyMs,p99LatencyMs,p50TtfbMs,p95TtfbMs,p99TtfbMs,p50TokensPerSecond,p95TokensPerSecond,p99TokensPerSecond,p50InterTokenLatencyMs,p95InterTokenLatencyMs,p99InterTokenLatencyMs,outputTokens,benchmarkDurationMs,requestsPerSecond,outputTokensPerSecond,stopReason
+192,2026-06-02T10:02:44.581Z,256,256,0,0,0,13381,19653,19667,7312,13527,13542,27,71,74,12,13,13,128068,25608,9.9969,5001.0934,request-limit
+256,2026-06-02T10:03:10.203Z,256,256,0,0,0,12718,24178,24189,7157,18652,18664,28,73,74,11,12,12,126685,24292,10.5384,5215.0914,request-limit

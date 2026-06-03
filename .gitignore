@@ -1,0 +1,24 @@
+# Local/editor noise
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Logs and transient captures
+*.log
+*.err
+*.out
+
+# Local archives generated during packaging
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Dependency/build folders should not be part of this data repo
+node_modules/
+dist/
+build/
+.cache/
