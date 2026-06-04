@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430" role="img" aria-labelledby="title desc">
+  <title id="title">Goodput and SLO pass rate under offered load</title>
+  <desc id="desc">Line chart showing TTFT and end-to-end SLO pass rates falling after 5 rps while TPOT remains high.</desc>
+  <rect width="860" height="430" fill="#ffffff"/>
+  <text x="430" y="34" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Goodput / SLO pass rate</text>
+  <text x="430" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">TTFT and e2e SLOs collapse after 5 rps; TPOT stays healthy once admitted</text>
+
+  <rect x="78" y="78" width="704" height="262" fill="#f9fafb" stroke="#e5e7eb"/>
+  <line x1="78" y1="340" x2="782" y2="340" stroke="#111827" stroke-width="1"/>
+  <line x1="78" y1="78" x2="78" y2="340" stroke="#111827" stroke-width="1"/>
+
+  <g stroke="#e5e7eb">
+    <line x1="78" y1="340" x2="782" y2="340"/>
+    <line x1="78" y1="275" x2="782" y2="275"/>
+    <line x1="78" y1="210" x2="782" y2="210"/>
+    <line x1="78" y1="145" x2="782" y2="145"/>
+    <line x1="78" y1="80" x2="782" y2="80"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="11" fill="#374151">
+    <text x="68" y="344" text-anchor="end">0%</text>
+    <text x="68" y="279" text-anchor="end">25%</text>
+    <text x="68" y="214" text-anchor="end">50%</text>
+    <text x="68" y="149" text-anchor="end">75%</text>
+    <text x="68" y="84" text-anchor="end">100%</text>
+  </g>
+
+  <polyline fill="none" stroke="#dc2626" stroke-width="3" points="112,80 264,80 416,247.9 568,270.7 720,270.7"/>
+  <polyline fill="none" stroke="#7c3aed" stroke-width="3" points="112,80 264,80 416,172.1 568,260.9 720,270.7"/>
+  <polyline fill="none" stroke="#059669" stroke-width="3" points="112,80 264,80 416,100.6 568,80 720,80"/>
+
+  <g fill="#dc2626">
+    <circle cx="112" cy="80" r="4"/><circle cx="264" cy="80" r="4"/><circle cx="416" cy="247.9" r="4"/><circle cx="568" cy="270.7" r="4"/><circle cx="720" cy="270.7" r="4"/>
+  </g>
+  <g fill="#7c3aed">
+    <circle cx="112" cy="80" r="4"/><circle cx="264" cy="80" r="4"/><circle cx="416" cy="172.1" r="4"/><circle cx="568" cy="260.9" r="4"/><circle cx="720" cy="270.7" r="4"/>
+  </g>
+  <g fill="#059669">
+    <circle cx="112" cy="80" r="4"/><circle cx="264" cy="80" r="4"/><circle cx="416" cy="100.6" r="4"/><circle cx="568" cy="80" r="4"/><circle cx="720" cy="80" r="4"/>
+  </g>
+
+  <g font-family="Arial, sans-serif" font-size="11" fill="#374151">
+    <text x="112" y="362" text-anchor="middle">2</text>
+    <text x="264" y="362" text-anchor="middle">5</text>
+    <text x="416" y="362" text-anchor="middle">6</text>
+    <text x="568" y="362" text-anchor="middle">8</text>
+    <text x="720" y="362" text-anchor="middle">10</text>
+    <text x="430" y="392" text-anchor="middle" font-size="12" fill="#111827">Offered load (rps)</text>
+    <text transform="translate(24 209) rotate(-90)" text-anchor="middle" font-size="12" fill="#111827">Pass rate</text>
+  </g>
+
+  <rect x="548" y="245" width="214" height="73" rx="4" fill="#ffffff" stroke="#e5e7eb"/>
+  <line x1="564" y1="266" x2="596" y2="266" stroke="#dc2626" stroke-width="3"/>
+  <text x="604" y="270" font-family="Arial, sans-serif" font-size="12" fill="#111827">TTFT &lt; 1s</text>
+  <line x1="564" y1="288" x2="596" y2="288" stroke="#7c3aed" stroke-width="3"/>
+  <text x="604" y="292" font-family="Arial, sans-serif" font-size="12" fill="#111827">e2e &lt; 15s</text>
+  <line x1="564" y1="310" x2="596" y2="310" stroke="#059669" stroke-width="3"/>
+  <text x="604" y="314" font-family="Arial, sans-serif" font-size="12" fill="#111827">TPOT &lt; 25ms</text>
+</svg>

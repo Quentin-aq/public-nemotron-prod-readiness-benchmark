@@ -90,6 +90,41 @@ That is the operational wall: once request pressure crosses the serving
 capacity region, vLLM continues serving without errors, but additional
 requests wait before first token.
 
+## Visual Evidence
+
+The charts below are generated from the sanitized CSV files included in
+this repository. They are intended to make the operating boundary easier
+to inspect before reading the detailed tables.
+
+![Open-loop capacity frontier](assets/open-loop-capacity-frontier.svg)
+
+The capacity frontier shows the main trade-off: after the `5 rps`
+offered-load region, client-observed output throughput improves only
+modestly while p95 TTFT rises sharply.
+
+![vLLM scheduler pressure](assets/server-queue-running-waiting.svg)
+
+The scheduler chart is the clearest server-side explanation. At `5 rps`,
+vLLM still has no observed waiting queue. At `6 rps`, running requests
+reach the `max_num_seqs=64` region and waiting requests appear.
+
+![Goodput and SLO pass rate](assets/goodput-slo-pass-rate.svg)
+
+The goodput chart shows why this is not primarily a decode-speed issue:
+TPOT remains healthy at high offered load, while TTFT and end-to-end SLO
+pass rates fall after the queueing boundary.
+
+<details>
+<summary>Closed-loop throughput reference charts</summary>
+
+![Closed-loop output TPS](assets/nemotron-load-output-tps.svg)
+
+![Closed-loop p95 TTFT](assets/nemotron-load-p95-ttft.svg)
+
+![Closed-loop p95 e2e](assets/nemotron-load-p95-e2e.svg)
+
+</details>
+
 ## Key Evidence
 
 Source: [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv)
