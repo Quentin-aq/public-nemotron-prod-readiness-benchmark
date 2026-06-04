@@ -10,21 +10,20 @@ L'objectif n'est pas de classer la qualite des modeles. L'objectif est de
 repondre a une question de serving :
 
 > Sous une charge streaming a contexte court et sortie longue, ou ce
-> deploiement reste-t-il interactif, ou devient-il utilisable en interne,
-> et ou bascule-t-il en mode batch uniquement ?
+> deploiement reste-t-il interactif, ou devient-il oriente debit, et ou
+> bascule-t-il en mode batch uniquement ?
 
-Les endpoints de service internes, namespaces Kubernetes, noms d'hotes
-prives, chemins locaux, credentials, bearer tokens et corps de reponses
-generes par le modele ont ete retires de ce package public.
+Ce depot contient des donnees de benchmark agregees, des metriques
+sanitisees et des resumes visuels.
 
 ## TL;DR
 
-GO controle pour la charge benchmarkee.
+La charge benchmarkee montre une enveloppe latence/debit claire.
 
 - Le chat interactif est supporte jusqu'a environ `2 rps` de charge
   offerte, avec `~1.80 requetes terminees/s`, un p95 TTFT de `533 ms`,
   un p95 e2e de `6.1s` et `0%` d'erreurs.
-- L'usage interne a haut debit reste praticable autour de `5 rps` de
+- L'usage oriente debit reste praticable autour de `5 rps` de
   charge offerte, avec un p95 TTFT de `646 ms`, un p95 e2e de `12.1s` et
   `~1992 tokens de sortie/s` observes cote client.
 - La principale frontiere de file d'attente apparait entre `5` et
@@ -38,38 +37,14 @@ GO controle pour la charge benchmarkee.
   token, pas la vitesse de decode par token : le p95 ITL reste autour de
   `24-25 ms` a `6-10 rps`, alors que le TTFT augmente fortement.
 
-## Decision
-
-**GO controle** pour ce deploiement vLLM 2 GPU specifique, sous la charge
-streaming benchmarkee a contexte court et forte generation.
-
-Utiliser ce resultat pour :
-
-- dimensionner le trafic interactif pres de la zone de charge offerte
-  `2 rps` ;
-- router le trafic d'assistant interne tolerant pres de la zone de charge
-  offerte `5 rps` ;
-- traiter `8-10 rps` de charge offerte comme capacite batch / jobs agents
-  lorsque plusieurs secondes de TTFT sont acceptables.
-
-Ne pas utiliser ce resultat pour affirmer :
-
-- un serving interactif a `10 rps` ;
-- une readiness interactive en contexte long ;
-- une superiorite de qualite modele ;
-- un comportement d'autoscaling multi-tenant ;
-- une parite de cout avec des APIs hebergees ;
-- une generalisation a d'autres GPU, versions de vLLM, revisions de
-  modele ou parametres de serving.
-
 ## Enveloppe operationnelle
 
-| Classe de charge | Point operationnel recommande | Evidence client | Evidence serveur | Lecture production |
+| Classe de charge | Point operationnel | Evidence client | Evidence serveur | Lecture |
 | --- | ---: | --- | --- | --- |
-| Chat interactif | `<= 2 rps` de charge offerte, `~1.80 rps terminees` observees | p95 TTFT `533 ms`, p95 e2e `6.1s`, `100%` TTFT < `1s` | max running `11`, max waiting `0` | GO |
-| Assistant interne haut debit | autour de `5 rps` de charge offerte, `~3.90 rps terminees` observees | p95 TTFT `646 ms`, p95 e2e `12.1s`, `~1992 tokens de sortie/s` | max running `58`, max waiting `0` | GO avec monitoring |
-| Frontiere de file d'attente | entre `5` et `6 rps` de charge offerte | p95 TTFT de `646 ms` a `5.47s` ; p95 e2e monte a `16.1s` | max running atteint `64` ; max waiting monte a `19` | controle d'admission recommande |
-| Batch / jobs agents | `8-10 rps` de charge offerte | `0%` erreurs, p95 TTFT `12.2-17.3s`, output TPS `~2203-2205` | max running `64` ; max waiting `41-58` ; throttling actif `0` | batch uniquement |
+| Chat interactif | `<= 2 rps` de charge offerte, `~1.80 rps terminees` observees | p95 TTFT `533 ms`, p95 e2e `6.1s`, `100%` TTFT < `1s` | max running `11`, max waiting `0` | interactif |
+| Charge orientee debit | autour de `5 rps` de charge offerte, `~3.90 rps terminees` observees | p95 TTFT `646 ms`, p95 e2e `12.1s`, `~1992 tokens de sortie/s` | max running `58`, max waiting `0` | haut debit |
+| Frontiere de file d'attente | entre `5` et `6 rps` de charge offerte | p95 TTFT de `646 ms` a `5.47s` ; p95 e2e monte a `16.1s` | max running atteint `64` ; max waiting monte a `19` | debut de saturation |
+| Jobs batch | `8-10 rps` de charge offerte | `0%` erreurs, p95 TTFT `12.2-17.3s`, output TPS `~2203-2205` | max running `64` ; max waiting `41-58` ; throttling actif `0` | batch uniquement |
 
 ## Constat principal
 
@@ -123,9 +98,9 @@ attente apparaissent.
 
 ![Matrice d'usage](assets/usage-matrix.svg)
 
-La matrice d'usage transforme le benchmark en guide de routage : chat
-interactif, trafic d'assistant interne tolerant et batch / jobs agents ne
-doivent pas partager les memes attentes de latence.
+La matrice d'usage resume les classes de latence : chat interactif,
+charges orientees debit et jobs batch ne partagent pas les memes attentes
+de latence.
 
 ![Debit vs UX](assets/throughput-vs-ux.svg)
 
@@ -158,7 +133,7 @@ Source : [`data/request-rate-combined-summary.csv`](data/request-rate-combined-s
 | RPS offert | RPS terminees | Max inflight | p95 TTFT | p95 e2e | TPS sortie client | Taux erreur | Lecture |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | 2 | 1.7979 | 13 | 533 ms | 6111 ms | 880.7 | 0% | interactif |
-| 5 | 3.9044 | 61 | 646 ms | 12119 ms | 1992.0 | 0% | interne haut debit |
+| 5 | 3.9044 | 61 | 646 ms | 12119 ms | 1992.0 | 0% | charge haut debit |
 | 6 | 3.7836 | 93 | 5466 ms | 16121 ms | 1930.9 | 0% | debut de file d'attente |
 | 8 | 4.3238 | 133 | 12219 ms | 21588 ms | 2203.5 | 0% | tendance batch |
 | 10 | 4.3194 | 169 | 17306 ms | 26761 ms | 2205.3 | 0% | batch uniquement |
@@ -171,10 +146,10 @@ avec `0%` d'erreurs et `0` timeout, mais le p95 TTFT a atteint `17.3s`.
 
 Source : [`data/server-metrics-deltas.csv`](data/server-metrics-deltas.csv)
 
-Les metriques serveur ont ete collectees via un scrape d'API Prometheus
-authentifie pendant le benchmark. Le scrape incluait les metriques
-scheduler vLLM, les compteurs vLLM de latence/tokens, la telemetrie GPU
-DCGM et les metriques de throttling nvidia-smi.
+Les metriques serveur ont ete echantillonnees toutes les `2000 ms`
+pendant le benchmark. Les echantillons incluaient les metriques scheduler
+vLLM, les compteurs vLLM de latence/tokens, la telemetrie GPU DCGM et les
+metriques de throttling nvidia-smi.
 
 | RPS offert | Max running | Max waiting | TTFT serveur moyen | e2e serveur moyen | ITL serveur moyen | Util GPU max | Puissance max | VRAM utilisee | Throttle actif |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -206,15 +181,15 @@ exigences de latence universelles.
 | RPS offert | RPS terminees | Sans erreur | TTFT < 1s | TTFT < 5s | TPOT < 25ms | e2e < 15s | Lecture |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | 2 | 1.7979 | 100% | 100% | 100% | 100% | 100% | interactif |
-| 5 | 3.9044 | 100% | 100% | 100% | 100% | 100% | interne haut debit |
+| 5 | 3.9044 | 100% | 100% | 100% | 100% | 100% | charge haut debit |
 | 6 | 3.7836 | 100% | 35.42% | 88.75% | 92.08% | 64.58% | debut de file d'attente |
 | 8 | 4.3238 | 100% | 26.67% | 53.33% | 100% | 30.42% | tendance batch |
 | 10 | 4.3194 | 100% | 26.67% | 31.25% | 100% | 26.67% | batch uniquement |
 
 Le diagnostic le plus important est que les SLO TTFT et e2e s'effondrent
 avant TPOT. Le systeme peut encore decoder des tokens regulierement une
-fois une requete admise, mais beaucoup de requetes attendent trop
-longtemps avant admission.
+fois une requete acceptee pour le serving, mais beaucoup de requetes
+attendent trop longtemps avant le demarrage du service.
 
 ## Methodologie
 
@@ -237,12 +212,11 @@ longtemps avant admission.
 | Mode reasoning | `enable_thinking=false` |
 | Streaming | `true` |
 | Timeout | `120000 ms` |
-| Telemetrie serveur | scrape API Prometheus authentifie toutes les `2000 ms` |
+| Telemetrie serveur | echantillonnage des metriques serveur toutes les `2000 ms` |
 | Runtime serveur | vLLM `0.21.0`, PyTorch `2.11.0+cu130`, driver NVIDIA `595.58.03`, runtime CUDA `13.2` |
 | Hardware serveur | 2 x NVIDIA RTX PRO 6000 Blackwell Server Edition, tensor parallel size `2` |
 
-Le benchmark a ete execute via le meme chemin de serving prive utilise
-par les clients internes. Il mesure donc le chemin operationnel, pas un
+Le benchmark mesure un chemin de serving end-to-end, pas un
 microbenchmark localhost uniquement.
 
 ## Definitions des metriques
@@ -262,9 +236,8 @@ microbenchmark localhost uniquement.
 
 ## Profil serveur et vLLM
 
-Le manifeste public conserve uniquement les metadonnees hardware et
-runtime pertinentes pour le benchmark. Il retire les noms d'hotes prives,
-chemins, services, credentials et details de deploiement.
+Le manifeste public conserve les metadonnees hardware et runtime
+pertinentes pour le benchmark.
 
 | Domaine | Valeur publique du benchmark |
 | --- | --- |
@@ -280,23 +253,6 @@ chemins, services, credentials et details de deploiement.
 de capacite de serving. Une fois la pression au-dessus, vLLM continue a
 servir sans erreurs mais introduit une file d'attente avant le premier
 token.
-
-## Interpretation operationnelle
-
-Politique de routage recommandee pour cette charge :
-
-- Garder le chat interactif pres de ou sous la zone de charge offerte
-  `2 rps`.
-- Router les charges d'assistant interne tolerantes autour de la zone de
-  charge offerte `5 rps`, avec monitoring de `num_requests_waiting` et du
-  p95 TTFT.
-- Traiter `8-10 rps` de charge offerte comme capacite batch / jobs agents
-  uniquement.
-- Utiliser un controle d'admission ou un rate limiter pour proteger le
-  trafic interactif lorsque `num_requests_running` approche `64` ou que
-  `num_requests_waiting > 0`.
-- Ne pas melanger de requetes interactives long contexte dans le meme pool
-  sans benchmark separe ; ce run est a contexte court et decode-heavy.
 
 ## Limites connues
 
@@ -315,18 +271,13 @@ Limites actuelles :
 - pas de calcul energie par token ou watts par million de tokens ;
 - pas de corps de reponses generees brutes en public.
 
-Les rejets proches de 32k en contexte long dans des tests internes plus
-larges etaient des rejets de budget serveur, pas des echecs du modele :
-`input_tokens + output_tokens` depassait le `max_model_len=32768`
-configure.
-
 ## Fichiers de donnees
 
 | Chemin | Contenu |
 | --- | --- |
-| [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv) | Resume request-rate de `0.25` a `10 rps` pour le run 2026-06-03 avec metriques authentifiees |
+| [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv) | Resume request-rate de `0.25` a `10 rps` pour le run metriques 2026-06-03 |
 | [`data/goodput-slo-summary.csv`](data/goodput-slo-summary.csv) | Taux de passage SLO par niveau calcules depuis les enregistrements de requetes mesurees |
-| [`data/server-metrics-deltas.csv`](data/server-metrics-deltas.csv) | Deltas de metriques vLLM/GPU par niveau depuis les scrapes Prometheus authentifies |
+| [`data/server-metrics-deltas.csv`](data/server-metrics-deltas.csv) | Deltas de metriques vLLM/GPU par niveau depuis les echantillons de metriques serveur |
 | [`data/reference-runs/`](data/reference-runs/) | Annexes sanitisees metriques uniquement pour les runs precedents smoke, qualite, long contexte, stress et throughput closed-loop |
 | [`DATA_NOTICE.md`](DATA_NOTICE.md) | Notice de sanitisation et d'inclusion |
 

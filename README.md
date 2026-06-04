@@ -10,21 +10,20 @@ The goal is not to rank model quality. The goal is to answer a serving
 question:
 
 > Under a short-context, long-output streaming workload, where is this
-> deployment interactive, where is it internally usable, and where does
+> deployment interactive, where is it throughput-oriented, and where does
 > it become batch-only?
 
-Internal service endpoints, Kubernetes namespaces, private hostnames,
-local filesystem paths, credentials, bearer tokens, and generated model
-response bodies were removed from this public package.
+This repository contains aggregate benchmark data, sanitized metrics, and
+visual summaries.
 
 ## TL;DR
 
-Controlled GO for the benchmarked workload.
+The benchmarked workload shows a clear latency/throughput envelope.
 
 - Interactive chat is supported up to around `2 rps` offered load, with
   `~1.80 completed requests/s`, p95 TTFT `533 ms`, p95 e2e `6.1s`, and
   `0%` errors.
-- High-throughput internal usage remains practical around `5 rps`
+- Throughput-oriented usage remains practical around `5 rps`
   offered load, with p95 TTFT `646 ms`, p95 e2e `12.1s`, and
   `~1992 client-observed output tokens/s`.
 - The main queueing boundary appears between `5` and `6 rps`: observed
@@ -38,37 +37,14 @@ Controlled GO for the benchmarked workload.
   not per-token decode speed: p95 ITL stays around `24-25 ms` at
   `6-10 rps` while TTFT increases sharply.
 
-## Decision
-
-**Controlled GO** for this specific 2-GPU vLLM deployment under the
-benchmarked short-context, decode-heavy streaming workload.
-
-Do use this result for:
-
-- sizing interactive traffic near the `2 rps` offered-load region;
-- routing tolerant internal assistant traffic near the `5 rps`
-  offered-load region;
-- treating `8-10 rps` offered load as batch / agent-job capacity when
-  multi-second TTFT is acceptable.
-
-Do not use this result to claim:
-
-- `10 rps` interactive serving;
-- long-context interactive readiness;
-- model-quality superiority;
-- multi-tenant autoscaling behavior;
-- cost parity with hosted APIs;
-- generalization to other GPUs, vLLM versions, model revisions, or
-  serving parameters.
-
 ## Operating Envelope
 
-| Workload class | Recommended operating point | Client evidence | Server evidence | Production reading |
+| Workload class | Operating point | Client evidence | Server evidence | Reading |
 | --- | ---: | --- | --- | --- |
-| Interactive chat | `<= 2 rps` offered load, `~1.80 completed rps` observed | p95 TTFT `533 ms`, p95 e2e `6.1s`, `100%` TTFT < `1s` | max running `11`, max waiting `0` | GO |
-| High-throughput internal assistant | around `5 rps` offered load, `~3.90 completed rps` observed | p95 TTFT `646 ms`, p95 e2e `12.1s`, `~1992 output tokens/s` | max running `58`, max waiting `0` | GO with monitoring |
-| Queueing boundary | between `5` and `6 rps` offered load | p95 TTFT jumps from `646 ms` to `5.47s`; p95 e2e rises to `16.1s` | max running hits `64`; max waiting rises to `19` | admission control recommended |
-| Batch / agent jobs | `8-10 rps` offered load | `0%` errors, p95 TTFT `12.2-17.3s`, output TPS `~2203-2205` | max running `64`; max waiting `41-58`; throttling active `0` | batch only |
+| Interactive chat | `<= 2 rps` offered load, `~1.80 completed rps` observed | p95 TTFT `533 ms`, p95 e2e `6.1s`, `100%` TTFT < `1s` | max running `11`, max waiting `0` | interactive |
+| Throughput-oriented workload | around `5 rps` offered load, `~3.90 completed rps` observed | p95 TTFT `646 ms`, p95 e2e `12.1s`, `~1992 output tokens/s` | max running `58`, max waiting `0` | high throughput |
+| Queueing boundary | between `5` and `6 rps` offered load | p95 TTFT jumps from `646 ms` to `5.47s`; p95 e2e rises to `16.1s` | max running hits `64`; max waiting rises to `19` | saturation starts |
+| Batch jobs | `8-10 rps` offered load | `0%` errors, p95 TTFT `12.2-17.3s`, output TPS `~2203-2205` | max running `64`; max waiting `41-58`; throttling active `0` | batch only |
 
 ## Main Finding
 
@@ -117,9 +93,9 @@ reach the `max_num_seqs=64` region and waiting requests appear.
 
 ![Usage matrix](assets/usage-matrix.svg)
 
-The usage matrix turns the benchmark into routing guidance: interactive
-chat, tolerant internal assistant traffic, and batch / agent jobs should
-not share the same latency expectations.
+The usage matrix summarizes the latency classes: interactive chat,
+throughput-oriented workloads, and batch jobs do not share the same
+latency expectations.
 
 ![Throughput vs UX](assets/throughput-vs-ux.svg)
 
@@ -151,7 +127,7 @@ Source: [`data/request-rate-combined-summary.csv`](data/request-rate-combined-su
 | Offered RPS | Completed RPS | Max inflight | p95 TTFT | p95 e2e | Client output TPS | Error rate | Reading |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | 2 | 1.7979 | 13 | 533 ms | 6111 ms | 880.7 | 0% | interactive |
-| 5 | 3.9044 | 61 | 646 ms | 12119 ms | 1992.0 | 0% | high-throughput internal |
+| 5 | 3.9044 | 61 | 646 ms | 12119 ms | 1992.0 | 0% | high-throughput workload |
 | 6 | 3.7836 | 93 | 5466 ms | 16121 ms | 1930.9 | 0% | queueing begins |
 | 8 | 4.3238 | 133 | 12219 ms | 21588 ms | 2203.5 | 0% | batch leaning |
 | 10 | 4.3194 | 169 | 17306 ms | 26761 ms | 2205.3 | 0% | batch only |
@@ -164,10 +140,9 @@ this load, the deployment completed approximately `4.32 requests/s` with
 
 Source: [`data/server-metrics-deltas.csv`](data/server-metrics-deltas.csv)
 
-Server metrics were collected through an authenticated Prometheus API
-scrape during the benchmark. The scrape included vLLM scheduler metrics,
-vLLM latency/token counters, DCGM GPU telemetry, and nvidia-smi
-throttling metrics.
+Server metrics were sampled every `2000 ms` during the benchmark. The
+samples included vLLM scheduler metrics, vLLM latency/token counters,
+DCGM GPU telemetry, and nvidia-smi throttling metrics.
 
 | Offered RPS | Max running | Max waiting | Avg server TTFT | Avg server e2e | Avg server ITL | Max GPU util | Max power | VRAM used | Throttle active |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -198,14 +173,15 @@ latency requirements.
 | Offered RPS | Completed RPS | Error-free | TTFT < 1s | TTFT < 5s | TPOT < 25ms | e2e < 15s | Reading |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | 2 | 1.7979 | 100% | 100% | 100% | 100% | 100% | interactive |
-| 5 | 3.9044 | 100% | 100% | 100% | 100% | 100% | high-throughput internal |
+| 5 | 3.9044 | 100% | 100% | 100% | 100% | 100% | high-throughput workload |
 | 6 | 3.7836 | 100% | 35.42% | 88.75% | 92.08% | 64.58% | queueing begins |
 | 8 | 4.3238 | 100% | 26.67% | 53.33% | 100% | 30.42% | batch leaning |
 | 10 | 4.3194 | 100% | 26.67% | 31.25% | 100% | 26.67% | batch only |
 
 The most important diagnostic is that TTFT and e2e SLOs collapse before
 TPOT does. The system can still decode tokens steadily once a request is
-admitted, but many requests wait too long before admission.
+accepted for serving, but many requests wait too long before service
+starts.
 
 ## Methodology
 
@@ -228,12 +204,11 @@ admitted, but many requests wait too long before admission.
 | Reasoning mode | `enable_thinking=false` |
 | Streaming | `true` |
 | Timeout | `120000 ms` |
-| Server telemetry | authenticated Prometheus API scrape every `2000 ms` |
+| Server telemetry | server metric sampling every `2000 ms` |
 | Server runtime | vLLM `0.21.0`, PyTorch `2.11.0+cu130`, NVIDIA driver `595.58.03`, CUDA runtime `13.2` |
 | Server hardware | 2 x NVIDIA RTX PRO 6000 Blackwell Server Edition, tensor parallel size `2` |
 
-The benchmark was executed through the same private serving path used by
-internal clients. It therefore measures the operational path, not a
+The benchmark measures an end-to-end serving path rather than a
 localhost-only microbenchmark.
 
 ## Metric Definitions
@@ -253,9 +228,8 @@ localhost-only microbenchmark.
 
 ## Server And vLLM Profile
 
-The public manifest keeps only benchmark-relevant hardware and runtime
-metadata. It removes private hostnames, paths, services, credentials, and
-deployment details.
+The public manifest keeps benchmark-relevant hardware and runtime
+metadata.
 
 | Domain | Public benchmark value |
 | --- | --- |
@@ -270,21 +244,6 @@ deployment details.
 1 second while observed pressure remains near or below this serving
 capacity region. Once pressure exceeds it, vLLM keeps serving without
 errors but introduces queueing before first token.
-
-## Operational Interpretation
-
-Recommended routing policy for this workload:
-
-- Keep interactive chat near or below the `2 rps` offered-load region.
-- Route tolerant internal assistant workloads around the `5 rps`
-  offered-load region, with monitoring on `num_requests_waiting` and
-  p95 TTFT.
-- Treat `8-10 rps` offered load as batch / agent-job capacity only.
-- Use admission control or a rate limiter to protect interactive traffic
-  once `num_requests_running` approaches `64` or
-  `num_requests_waiting > 0`.
-- Do not mix long-context interactive requests into the same pool without
-  a separate benchmark; this run is short-context and decode-heavy.
 
 ## Known Limitations
 
@@ -302,17 +261,13 @@ Current limitations:
 - no energy-per-token or watts-per-million-token calculation;
 - no public raw generated response bodies.
 
-Near-32k long-context rejections in broader internal testing were server
-budget rejections, not model failures: `input_tokens + output_tokens`
-exceeded the configured `max_model_len=32768`.
-
 ## Data Files
 
 | Path | Content |
 | --- | --- |
-| [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv) | Request-rate summary from `0.25` to `10 rps` for the 2026-06-03 authenticated-metrics run |
+| [`data/request-rate-combined-summary.csv`](data/request-rate-combined-summary.csv) | Request-rate summary from `0.25` to `10 rps` for the 2026-06-03 metrics run |
 | [`data/goodput-slo-summary.csv`](data/goodput-slo-summary.csv) | Per-level SLO pass rates computed from measured request records |
-| [`data/server-metrics-deltas.csv`](data/server-metrics-deltas.csv) | Per-level vLLM/GPU metric deltas from authenticated Prometheus scrapes |
+| [`data/server-metrics-deltas.csv`](data/server-metrics-deltas.csv) | Per-level vLLM/GPU metric deltas from server metric samples |
 | [`data/reference-runs/`](data/reference-runs/) | Sanitized metrics-only appendices for earlier smoke, quality, long-context, stress, and closed-loop throughput runs |
 | [`DATA_NOTICE.md`](DATA_NOTICE.md) | Sanitization and inclusion notice |
 
