@@ -1,5 +1,7 @@
 # Nemotron 3 Nano on vLLM: 2-GPU Production-Readiness Benchmark
 
+Languages: [English](README.md) | [Francais](README.fr.md)
+
 This repository publishes a sanitized production-readiness benchmark for
 `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` served by vLLM on a 2-GPU
 deployment.
