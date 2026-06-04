@@ -102,11 +102,28 @@ The capacity frontier shows the main trade-off: after the `5 rps`
 offered-load region, client-observed output throughput improves only
 modestly while p95 TTFT rises sharply.
 
+![The TTFT wall](assets/ttft-wall.svg)
+
+The TTFT wall is the simplest latency reading: p95 TTFT is nearly flat
+through `5 rps`, then jumps at `6 rps` and keeps rising at `8-10 rps`.
+
 ![vLLM scheduler pressure](assets/server-queue-running-waiting.svg)
 
 The scheduler chart is the clearest server-side explanation. At `5 rps`,
 vLLM still has no observed waiting queue. At `6 rps`, running requests
 reach the `max_num_seqs=64` region and waiting requests appear.
+
+![Usage matrix](assets/usage-matrix.svg)
+
+The usage matrix turns the benchmark into routing guidance: interactive
+chat, tolerant internal assistant traffic, and batch / agent jobs should
+not share the same latency expectations.
+
+![Throughput vs UX](assets/throughput-vs-ux.svg)
+
+The throughput-vs-UX chart keeps the main caveat visible: high raw
+tokens/s does not imply interactive first-token latency under saturated
+load.
 
 ![Goodput and SLO pass rate](assets/goodput-slo-pass-rate.svg)
 

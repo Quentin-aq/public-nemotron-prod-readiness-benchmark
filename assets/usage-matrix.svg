@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="420" viewBox="0 0 860 420" role="img" aria-labelledby="title desc">
+  <title id="title">Usage matrix</title>
+  <desc id="desc">Three-zone matrix for interactive chat, internal assistant traffic, and batch or agent jobs.</desc>
+  <rect width="860" height="420" fill="#ffffff"/>
+  <text x="430" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Usage matrix</text>
+  <text x="430" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Same deployment, different usability depending on offered load and first-token latency</text>
+
+  <rect x="52" y="88" width="236" height="236" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+  <rect x="312" y="88" width="236" height="236" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="572" y="88" width="236" height="236" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+
+  <text x="170" y="124" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#065f46">Interactive chat</text>
+  <text x="430" y="124" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#92400e">Internal assistant</text>
+  <text x="690" y="124" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#991b1b">Batch / agents</text>
+
+  <g font-family="Arial, sans-serif" font-size="13" fill="#111827">
+    <text x="170" y="160" text-anchor="middle">Recommended point</text>
+    <text x="170" y="184" text-anchor="middle" font-size="22" font-weight="700">&lt;= 2 rps</text>
+    <text x="170" y="214" text-anchor="middle">~1.80 completed rps</text>
+    <text x="170" y="238" text-anchor="middle">p95 TTFT: 533 ms</text>
+    <text x="170" y="262" text-anchor="middle">p95 e2e: 6.1s</text>
+    <text x="170" y="294" text-anchor="middle" font-weight="700" fill="#047857">GO</text>
+
+    <text x="430" y="160" text-anchor="middle">Recommended point</text>
+    <text x="430" y="184" text-anchor="middle" font-size="22" font-weight="700">around 5 rps</text>
+    <text x="430" y="214" text-anchor="middle">~3.90 completed rps</text>
+    <text x="430" y="238" text-anchor="middle">p95 TTFT: 646 ms</text>
+    <text x="430" y="262" text-anchor="middle">p95 e2e: 12.1s</text>
+    <text x="430" y="294" text-anchor="middle" font-weight="700" fill="#b45309">GO with monitoring</text>
+
+    <text x="690" y="160" text-anchor="middle">Recommended point</text>
+    <text x="690" y="184" text-anchor="middle" font-size="22" font-weight="700">8-10 rps</text>
+    <text x="690" y="214" text-anchor="middle">~4.32 completed rps</text>
+    <text x="690" y="238" text-anchor="middle">p95 TTFT: 12.2-17.3s</text>
+    <text x="690" y="262" text-anchor="middle">0 errors / 0 timeouts</text>
+    <text x="690" y="294" text-anchor="middle" font-weight="700" fill="#b91c1c">batch only</text>
+  </g>
+
+  <text x="430" y="358" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">The benchmark supports routing boundaries, not a universal production guarantee.</text>
+</svg>

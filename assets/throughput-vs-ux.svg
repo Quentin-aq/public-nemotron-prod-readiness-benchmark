@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="420" viewBox="0 0 860 420" role="img" aria-labelledby="title desc">
+  <title id="title">Throughput vs UX</title>
+  <desc id="desc">Two-panel visual contrasting impressive raw token throughput with poor first-token latency at high offered load.</desc>
+  <rect width="860" height="420" fill="#ffffff"/>
+  <text x="430" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Throughput vs UX</text>
+  <text x="430" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Do not confuse raw capacity with interactive capacity</text>
+
+  <rect x="56" y="88" width="350" height="236" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <rect x="454" y="88" width="350" height="236" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+
+  <text x="231" y="126" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#1d4ed8">Raw throughput</text>
+  <text x="629" y="126" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#c2410c">Interactive experience</text>
+
+  <text x="231" y="184" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#111827">~5,000</text>
+  <text x="231" y="216" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#111827">output tokens/s</text>
+  <text x="231" y="248" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">closed-loop throughput reference</text>
+  <text x="231" y="272" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">4,994 tokens/s at concurrency 512</text>
+
+  <text x="629" y="184" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#111827">17.3s</text>
+  <text x="629" y="216" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#111827">p95 first token</text>
+  <text x="629" y="248" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">open-loop at 10 rps offered load</text>
+  <text x="629" y="272" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">stable, but not chat-interactive</text>
+
+  <line x1="418" y1="206" x2="442" y2="206" stroke="#9ca3af" stroke-width="2"/>
+  <polygon points="442,206 432,200 432,212" fill="#9ca3af"/>
+
+  <rect x="144" y="346" width="572" height="36" rx="6" fill="#111827"/>
+  <text x="430" y="369" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">High tokens/s does not imply interactive first-token latency.</text>
+</svg>
