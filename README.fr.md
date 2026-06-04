@@ -320,22 +320,6 @@ larges etaient des rejets de budget serveur, pas des echecs du modele :
 `input_tokens + output_tokens` depassait le `max_model_len=32768`
 configure.
 
-## Roadmap du prochain benchmark
-
-Le prochain run devrait elargir la couverture production :
-
-- executer un soak de 30-60 minutes aux plafonds recommandes interactif
-  et batch ;
-- ajouter des cas interactifs long contexte a `8k`, `16k` et `30k`
-  tokens d'entree ;
-- ajouter un benchmark de trafic mixte avec charges chat, batch, JSON et
-  agents separees ;
-- publier des enveloppes operationnelles focalisees p99 ;
-- ajouter des estimations energie et cout si les donnees sous-jacentes
-  peuvent etre partagees ;
-- comparer des politiques de routage qui isolent trafic interactif et
-  batch.
-
 ## Fichiers de donnees
 
 | Chemin | Contenu |
@@ -371,19 +355,3 @@ materiel amorti ni l'integration energetique.
 
 Ce dataset est publie selon les termes decrits dans [`LICENSE`](LICENSE).
 Les metadonnees de citation sont fournies dans [`CITATION.cff`](CITATION.cff).
-
-## Perimetre de securite publique
-
-Cet export exclut intentionnellement :
-
-- cles API, bearer tokens, secrets Kubernetes et credentials ;
-- URLs de services internes, namespaces de cluster, noms d'hotes prives et
-  chemins locaux ;
-- manifestes Kubernetes, fichiers de deploiement et fichiers sources de la
-  codebase ;
-- corps de reponses generees par le modele depuis les JSONL de stress
-  bruts.
-
-Le package est concu pour etre publie comme evidence de benchmark, pas
-comme runbook operationnel de l'infrastructure privee utilisee pour
-l'executer.

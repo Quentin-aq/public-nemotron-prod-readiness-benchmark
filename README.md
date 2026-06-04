@@ -306,20 +306,6 @@ Near-32k long-context rejections in broader internal testing were server
 budget rejections, not model failures: `input_tokens + output_tokens`
 exceeded the configured `max_model_len=32768`.
 
-## Next Benchmark Roadmap
-
-The next run should broaden production coverage:
-
-- run a 30-60 minute soak at the recommended interactive and batch
-  ceilings;
-- add long-context interactive cases at `8k`, `16k`, and `30k` input
-  tokens;
-- add a mixed traffic benchmark with separate chat, batch, JSON, and
-  agent workloads;
-- publish p99-focused operating envelopes;
-- add energy and cost estimates if the underlying data can be shared;
-- compare routing policies that isolate interactive and batch traffic.
-
 ## Data Files
 
 | Path | Content |
@@ -354,16 +340,3 @@ hardware cost or energy integration.
 
 This dataset is released under the terms described in [`LICENSE`](LICENSE).
 Citation metadata is provided in [`CITATION.cff`](CITATION.cff).
-
-## Public-Safety Scope
-
-This export intentionally excludes:
-
-- API keys, bearer tokens, Kubernetes secrets, and credentials;
-- internal service URLs, cluster namespaces, private hostnames, and local
-  filesystem paths;
-- Kubernetes manifests, deployment files, and codebase source files;
-- generated model response bodies from raw stress JSONL files.
-
-The package is meant to be published as benchmark evidence, not as an
-operational runbook for the private infrastructure used to run it.
